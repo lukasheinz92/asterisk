@@ -1,0 +1,568 @@
+:root {
+    --bg-color: #121212;
+    --sidebar-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --accent-color: #2196F3;
+    --card-bg: #2d2d2d;
+    --hover-color: #0d47a1;
+    --success-color: #4caf50;
+    --danger-color: #f44336;
+    --warning-color: #ff9800;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#sidebar {
+    width: 240px;
+    background-color: var(--sidebar-bg);
+    overflow-y: auto;
+    border-right: 1px solid #333;
+    padding: 20px 0;
+    position: relative;
+}
+
+#content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.header {
+    padding: 0 20px 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin: 0 0 5px 0;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-top: 0;
+    color: var(--accent-color);
+}
+
+h3 {
+    font-size: 1.3rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-box {
+    padding: 0 20px 15px;
+    margin-bottom: 15px;
+}
+
+input[type="text"], input[type="url"], select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="url"]:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.tab-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    padding-bottom: 60px;
+}
+
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+    user-select: none;
+}
+
+.tab:hover {
+    background-color: #333;
+}
+
+.tab.active {
+    background-color: var(--accent-color);
+    color: #fff;
+    font-weight: bold;
+}
+
+.tab.dragging {
+    opacity: 0.5;
+    background-color: #444;
+}
+
+.drop-indicator {
+    height: 2px;
+    background-color: var(--accent-color);
+    margin: 2px 0;
+    border-radius: 1px;
+    opacity: 0.8;
+}
+
+/* Tab Group Styling */
+.tab-group-header {
+    padding: 8px 20px 4px;
+    margin: 8px 0 4px;
+    border-bottom: 1px solid #444;
+    background-color: rgba(33, 150, 243, 0.05);
+    transition: all 0.2s ease;
+    display: block; /* Always visible now */
+}
+
+.tab-group-header.drag-active {
+    display: block; /* Show during drag */
+}
+
+.tab-group-header.drop-zone-active {
+    background-color: rgba(33, 150, 243, 0.15);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
+}
+
+.group-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 2px;
+}
+
+.group-description {
+    font-size: 10px;
+    color: #888;
+    font-style: italic;
+}
+
+.tab-group-container {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin: 0 0 8px;
+    /* No visual styling by default - looks like normal tab list */
+}
+
+.tab-group-container.drop-zone-active {
+    background-color: rgba(33, 150, 243, 0.08);
+    border: 1px dashed var(--accent-color);
+    padding: 4px;
+    margin: 0 4px 8px;
+}
+
+/* Tab Group Separator */
+.tab-group-separator {
+    height: 1px;
+    background-color: #444;
+    margin: 12px 20px;
+    opacity: 0.6;
+}
+
+/* Dynamic Drop Zones (only visible during drag) */
+.dynamic-drop-zone {
+    min-height: 40px;
+    margin: 8px 16px;
+    border: 2px dashed #666;
+    border-radius: 4px;
+    background-color: rgba(33, 150, 243, 0.05);
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.dynamic-drop-zone-top {
+    border-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.05);
+}
+
+.dynamic-drop-zone-bottom {
+    border-color: #9c27b0;
+    background-color: rgba(156, 39, 176, 0.05);
+}
+
+/* Different group styling */
+.tab-group-top .group-title {
+    color: #ff9800;
+}
+
+.tab-group-top.drop-zone-active {
+    background-color: rgba(255, 152, 0, 0.15);
+    border-color: #ff9800;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+}
+
+.tab-group-bottom .group-title {
+    color: #9c27b0;
+}
+
+.tab-group-bottom.drop-zone-active {
+    background-color: rgba(156, 39, 176, 0.15);
+    border-color: #9c27b0;
+    box-shadow: 0 0 8px rgba(156, 39, 176, 0.3);
+}
+
+/* Empty Drop Zones */
+.empty-drop-zone {
+    margin: 8px 16px;
+    padding: 16px;
+    border: 2px dashed #666;
+    border-radius: 8px;
+    background-color: rgba(33, 150, 243, 0.05);
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-drop-zone:hover {
+    border-color: var(--accent-color);
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.empty-drop-zone-top {
+    border-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.05);
+}
+
+.empty-drop-zone-top:hover {
+    border-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.1);
+}
+
+.empty-drop-zone-bottom {
+    border-color: #9c27b0;
+    background-color: rgba(156, 39, 176, 0.05);
+}
+
+.empty-drop-zone-bottom:hover {
+    border-color: #9c27b0;
+    background-color: rgba(156, 39, 176, 0.1);
+}
+
+.empty-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.empty-zone-icon {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+.empty-zone-text {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+.add-tab-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.add-tab-btn:hover {
+    background-color: #45a049;
+}
+
+.bookmark-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    min-height: 120px;
+}
+
+.bookmark {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, background-color 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    user-select: none;
+}
+
+.bookmark:hover {
+    transform: translateY(-5px);
+    background-color: #3d3d3d;
+}
+
+.bookmark.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg) scale(0.9);
+    z-index: 1000;
+}
+
+.bookmark-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.bookmark-icon img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.bookmark-name {
+    font-weight: 500;
+}
+
+.add-bookmark {
+    background-color: transparent;
+    border: 2px dashed #666;
+    color: #666;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 0.2s;
+}
+
+.add-bookmark:hover {
+    border-color: var(--success-color);
+    color: var(--success-color);
+    transform: none;
+    background-color: transparent;
+}
+
+.add-group-btn {
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.add-group-btn:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+    display: none;
+}
+
+.project-section {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.drop-placeholder {
+    width: 180px;
+    height: 120px;
+    border: 2px dashed var(--accent-color);
+    border-radius: 8px;
+    background-color: rgba(33, 150, 243, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.drop-placeholder.visible {
+    opacity: 1;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.modal h3 {
+    margin-top: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.icon-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.icon-preview img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--hover-color);
+}
+
+.btn-secondary {
+    background-color: #666;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+/* Context Menu */
+.context-menu {
+    position: fixed;
+    background-color: var(--card-bg);
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 5px 0;
+    min-width: 120px;
+    z-index: 1001;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: #3d3d3d;
+}
+
+.context-menu-item.danger:hover {
+    background-color: var(--danger-color);
+}
+
+/* SortableJS Styling */
+.sortable-ghost {
+    opacity: 0.5;
+    background-color: rgba(33, 150, 243, 0.15);
+    border: 2px dashed var(--accent-color);
+    border-radius: 4px;
+}
+
+.sortable-chosen {
+    background-color: rgba(33, 150, 243, 0.1);
+    border: 1px solid var(--accent-color);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+    transform: rotate(5deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}

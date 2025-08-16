@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmarks</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="sidebar">
+        <div class="header">
+            <h1><img src="favicon.ico" alt="" style="width: 24px; height: 24px; vertical-align: -2px; margin-right: 8px;">Asterisk</h1>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search tabs...">
+        </div>
+        <ul class="tab-list" id="clientList">
+            <!-- Tab list will be populated by JavaScript -->
+        </ul>
+        <button class="add-tab-btn" id="addClientBtn">
+            <span>+</span>
+            Add New Tab
+        </button>
+    </div>
+    <div id="content">
+        <h2 id="clientTitle">Select a tab</h2>
+        <div id="bookmarkContainer">
+            <!-- Bookmarks will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <h3 id="clientModalTitle">Add New Tab</h3>
+            <form id="clientForm">
+                <div class="form-group">
+                    <label for="clientName">Tab Name:</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelClientBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <h3 id="groupModalTitle">Add New Group</h3>
+            <form id="groupForm">
+                <div class="form-group">
+                    <label for="groupName">Group Name:</label>
+                    <input type="text" id="groupName" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelGroupBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="bookmarkModal" class="modal">
+        <div class="modal-content">
+            <h3 id="bookmarkModalTitle">Add New Bookmark</h3>
+            <form id="bookmarkForm">
+                <div class="form-group">
+                    <label for="bookmarkName">Bookmark Name:</label>
+                    <input type="text" id="bookmarkName" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkUrl">URL:</label>
+                    <input type="url" id="bookmarkUrl" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkIcon">Icon:</label>
+                    <select id="bookmarkIcon" required>
+                        <option value="">Select an icon...</option>
+                    </select>
+                    <div id="iconPreview" class="icon-preview" style="display: none;">
+                        <img id="previewImg" src="" alt="Icon preview">
+                        <span id="previewName"></span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelBookmarkBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" id="editOption">Edit</div>
+        <div class="context-menu-item danger" id="deleteOption">Delete</div>
+    </div>
+
+    <!-- SortableJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- Load application -->
+    <script type="module">
+        // Force correct MIME type handling
+        import('./app.js').catch(err => {
+            console.error('Module loading failed:', err);
+            // Fallback: reload with different approach
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.textContent = `
+                import('./app.js').then(module => {
+                    console.log('Module loaded successfully');
+                }).catch(e => console.error('Still failing:', e));
+            `;
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>
