@@ -5,6 +5,11 @@ export default class IconManager {
         this.availableIcons = [];
     }
 
+    // Get base path for API calls
+    static getBasePath() {
+        return window.ASTERISK_BASE_PATH || '';
+    }
+
     async loadAvailableIcons() {
         await this.scanIconsDirectory();
         this.populateIconDropdown();
@@ -12,8 +17,9 @@ export default class IconManager {
 
     async scanIconsDirectory() {
         try {
+            const basePath = IconManager.getBasePath();
             console.log('Fetching icons from API...');
-            const response = await fetch('/api/icons');
+            const response = await fetch(`${basePath}/api/icons`);
             if (response.ok) {
                 const icons = await response.json();
                 console.log('Icons loaded from API:', icons.length, 'icons');
@@ -36,11 +42,12 @@ export default class IconManager {
             console.error('Bookmark icon select element not found');
             return;
         }
-        
+
+        const basePath = IconManager.getBasePath();
         console.log('Populating dropdown with', this.availableIcons.length, 'icons');
-        
+
         iconSelect.innerHTML = '<option value="">Select an icon...</option>';
-        
+
         // Sort icons alphabetically by display name
         const sortedIcons = this.availableIcons
             .map(icon => ({
@@ -48,10 +55,11 @@ export default class IconManager {
                 displayName: icon.replace('.png', '').replace(/[-_]/g, ' ')
             }))
             .sort((a, b) => a.displayName.localeCompare(b.displayName));
-        
+
         sortedIcons.forEach(({ filename, displayName }) => {
             const option = document.createElement('option');
-            option.value = `data/icons/${filename}`;
+            // Store path with base path prefix
+            option.value = `${basePath}/data/icons/${filename}`;
             option.textContent = displayName;
             iconSelect.appendChild(option);
         });

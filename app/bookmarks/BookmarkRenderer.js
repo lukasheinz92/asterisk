@@ -6,6 +6,34 @@ export default class BookmarkRenderer {
         this.manager = manager;
     }
 
+    // Get base path for icon URLs
+    static getBasePath() {
+        return window.ASTERISK_BASE_PATH || '';
+    }
+
+    // Prepend base path to icon URL if needed
+    static resolveIconPath(iconPath) {
+        if (!iconPath) return iconPath;
+        const basePath = BookmarkRenderer.getBasePath();
+
+        // If path already starts with base path or is absolute, return as-is
+        if (basePath && iconPath.startsWith(basePath)) {
+            return iconPath;
+        }
+
+        // If path starts with data/icons, prepend base path
+        if (iconPath.startsWith('data/icons/')) {
+            return `${basePath}/${iconPath}`;
+        }
+
+        // If path starts with /data/icons, prepend base path (without extra slash)
+        if (iconPath.startsWith('/data/icons/')) {
+            return `${basePath}${iconPath}`;
+        }
+
+        return iconPath;
+    }
+
     renderBookmarks(tab) {
         // Update title
         this.manager.elements.tabTitle.textContent = tab.name;
@@ -89,7 +117,8 @@ export default class BookmarkRenderer {
         // Create icon content
         let iconContent;
         if (bookmark.isImg) {
-            iconContent = `<img src="${bookmark.icon}" alt="${bookmark.name} logo">`;
+            const resolvedIcon = BookmarkRenderer.resolveIconPath(bookmark.icon);
+            iconContent = `<img src="${resolvedIcon}" alt="${bookmark.name} logo">`;
         } else {
             iconContent = bookmark.icon;
         }
@@ -261,8 +290,18 @@ export default class BookmarkRenderer {
         e.preventDefault();
         const name = document.getElementById('bookmarkName').value.trim();
         const url = document.getElementById('bookmarkUrl').value.trim();
-        const icon = document.getElementById('bookmarkIcon').value.trim() || 'icons/default.png';
-        
+        let icon = document.getElementById('bookmarkIcon').value.trim() || 'data/icons/default.png';
+
+        // Strip base path from icon for storage (makes data portable)
+        const basePath = BookmarkRenderer.getBasePath();
+        if (basePath && icon.startsWith(basePath)) {
+            icon = icon.substring(basePath.length);
+            // Remove leading slash if present
+            if (icon.startsWith('/')) {
+                icon = icon.substring(1);
+            }
+        }
+
         if (name && url) {
             const bookmark = {
                 name: name,

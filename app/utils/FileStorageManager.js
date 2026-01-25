@@ -1,8 +1,13 @@
 // File-based storage management for saving to data folder
 export class FileStorageManager {
     static DATA_FILE_PATH = '/data/bookmarks-data.json';
-    static API_ENDPOINT = '/api/bookmarks';
-    
+
+    // Dynamic API endpoint based on base path
+    static get API_ENDPOINT() {
+        const basePath = window.ASTERISK_BASE_PATH || '';
+        return `${basePath}/api/bookmarks`;
+    }
+
     // Save data to file
     static async saveData(data) {
         try {
@@ -16,7 +21,7 @@ export class FileStorageManager {
                     data: data
                 })
             });
-            
+
             if (response.ok) {
                 console.log('Data saved to file successfully');
                 return true;
@@ -29,12 +34,12 @@ export class FileStorageManager {
             return false;
         }
     }
-    
+
     // Load data from file
     static async loadData() {
         try {
             const response = await fetch(this.API_ENDPOINT + '?action=load');
-            
+
             if (response.ok) {
                 const data = await response.json();
                 console.log('Data loaded from file successfully');
@@ -51,7 +56,7 @@ export class FileStorageManager {
             return null;
         }
     }
-    
+
     // Check if saved data exists
     static async hasSavedData() {
         try {
@@ -61,14 +66,14 @@ export class FileStorageManager {
             return false;
         }
     }
-    
+
     // Clear saved data
     static async clearData() {
         try {
             const response = await fetch(this.API_ENDPOINT, {
                 method: 'DELETE'
             });
-            
+
             if (response.ok) {
                 console.log('Saved data cleared');
                 return true;
