@@ -4,6 +4,7 @@ console.log('App.js script starting...');
 // Import BookmarkManager
 import BookmarkManager from './app/core/BookmarkManager.js';
 import { GuiConfigManager } from './app/utils/GuiConfigManager.js';
+import { SidebarResizer } from './app/ui/SidebarResizer.js';
 
 console.log('Imports successful');
 
@@ -19,6 +20,7 @@ console.log('Default config:', defaultConfig);
 async function initializeApp() {
     console.log('Loading GUI config...');
     await GuiConfigManager.loadAndApply();
+    SidebarResizer.init();
 
     console.log('Initializing BookmarkManager...');
     try {

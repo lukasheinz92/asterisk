@@ -1,19 +1,21 @@
 // Modal management system
 import BookmarkRenderer from '../bookmarks/BookmarkRenderer.js';
+import { GuiConfigManager } from '../utils/GuiConfigManager.js';
 
 export default class ModalManager {
     constructor(manager) {
         this.manager = manager;
         this.isEditing = false;
         this.editingData = {};
-        
+
         // Modal elements
         this.modals = {
             tab: document.getElementById('clientModal'),
             group: document.getElementById('groupModal'),
-            bookmark: document.getElementById('bookmarkModal')
+            bookmark: document.getElementById('bookmarkModal'),
+            settings: document.getElementById('settingsModal')
         };
-        
+
         console.log('ModalManager initialized with modals:', this.modals);
     }
 
@@ -139,13 +141,28 @@ export default class ModalManager {
         this.modals.bookmark.style.display = 'block';
     }
 
+    openSettingsModal() {
+        const searchCheckbox = document.getElementById('settingsSearchEnabled');
+        searchCheckbox.checked = (GuiConfigManager.currentConfig ?? GuiConfigManager.DEFAULTS).searchEnabled;
+
+        this.captureSnapshot(['settingsSearchEnabled']);
+
+        this.modals.settings.style.display = 'block';
+    }
+
+    // Reads the value that matters for change-detection: "checked" for
+    // checkboxes, "value" for everything else.
+    getFieldValue(el) {
+        return el.type === 'checkbox' ? el.checked : el.value;
+    }
+
     // Records current form field values so later edits can be detected.
     captureSnapshot(fieldIds) {
         this.snapshotFieldIds = fieldIds;
         this.initialFormValues = {};
         fieldIds.forEach(id => {
             const el = document.getElementById(id);
-            this.initialFormValues[id] = el ? el.value : '';
+            this.initialFormValues[id] = el ? this.getFieldValue(el) : '';
         });
     }
 
@@ -153,7 +170,7 @@ export default class ModalManager {
         if (!this.snapshotFieldIds) return false;
         return this.snapshotFieldIds.some(id => {
             const el = document.getElementById(id);
-            return el && el.value !== this.initialFormValues[id];
+            return el && this.getFieldValue(el) !== this.initialFormValues[id];
         });
     }
 

@@ -1,2 +1,6 @@
 .vscode/
 data/
+.claude/settings.local.json
+node_modules/
+.DS_Store
+Thumbs.db

@@ -48,39 +48,84 @@ export default class BookmarkRenderer {
             tab.groups.forEach((group, groupIndex) => {
                 this.createGroupSection(group, groupIndex);
             });
-            
+
             // Add new group button
             this.addNewGroupButton();
+
+            // Setup drag and drop for reordering groups themselves
+            this.setupGroupSortable();
         } else if (tab.bookmarks) {
             this.renderDirectBookmarks(tab);
         }
     }
 
     createGroupSection(group, groupIndex) {
-        const groupSection = DOMUtils.createElement('div', { className: 'project-section' });
-        
+        const groupSection = DOMUtils.createElement('div', {
+            className: 'project-section',
+            'data-project-index': groupIndex.toString()
+        });
+
         // Group header
         const groupHeader = this.createGroupHeader(group, groupIndex);
         groupSection.appendChild(groupHeader);
-        
+
         // Bookmark grid
         const grid = this.createBookmarkGrid(group, groupIndex);
         groupSection.appendChild(grid);
-        
+
         this.manager.elements.bookmarkContainer.appendChild(groupSection);
     }
 
     createGroupHeader(group, groupIndex) {
         const groupHeader = DOMUtils.createElement('h3', {
             textContent: group.name,
+            className: 'group-header',
             'data-type': 'group',
             'data-project-index': groupIndex.toString()
         });
-        
+
         // Add right-click event
         this.manager.eventHandler.addRightClickEvent(groupHeader, 'group', { groupIndex });
-        
+
         return groupHeader;
+    }
+
+    setupGroupSortable() {
+        if (typeof Sortable === 'undefined') {
+            console.error('SortableJS library not loaded! Group drag and drop will not work.');
+            return;
+        }
+
+        const container = this.manager.elements.bookmarkContainer;
+        const sortableInstance = new Sortable(container, {
+            animation: 150,
+            handle: '.group-header', // Drag by the group title only, not the bookmark grid
+            filter: '.add-group-btn', // Don't make the add-group button draggable/sortable
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onEnd: (evt) => this.handleGroupMove(evt)
+        });
+
+        if (!this.sortableInstances) {
+            this.sortableInstances = [];
+        }
+        this.sortableInstances.push(sortableInstance);
+    }
+
+    handleGroupMove(evt) {
+        const currentTab = this.manager.getCurrentTab();
+        if (!currentTab || !currentTab.groups) return;
+
+        // Derive the new group order from the real, final DOM order rather
+        // than a computed index - same approach used for tab reordering,
+        // which avoids ever producing a position that collides with another
+        // group's and needing to be reconciled afterward.
+        const sections = [...this.manager.elements.bookmarkContainer.querySelectorAll('.project-section')];
+        const reordered = sections.map(el => currentTab.groups[parseInt(el.getAttribute('data-project-index'))]);
+
+        currentTab.groups = reordered;
+        this.manager.refreshCurrentTab();
     }
 
     createBookmarkGrid(group, groupIndex) {

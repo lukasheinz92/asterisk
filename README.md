@@ -41,14 +41,16 @@ data/
 
 ## GUI Configuration
 
-One file, hand-edited as JSON: `data/config.json`. It has a `"global"` section applied to every instance, plus one optional section per instance name — any key set there overrides the same key under `"global"` for that instance only; keys not set anywhere fall back to the built-in defaults. Auto-created with just a `"global"` section (all defaults) on first server start.
+Stored in `data/config.json`. It has a `"global"` section applied to every instance, plus one optional section per instance name — any key set there overrides the same key under `"global"` for that instance only; keys not set anywhere fall back to the built-in defaults. Auto-created with just a `"global"` section (all defaults) on first server start.
 
 Current settings:
 
-| Key             | Type    | Default | Effect                          |
-|-----------------|---------|---------|----------------------------------|
-| `sidebarWidth`  | number  | `240`   | Width in pixels of the left tab panel |
-| `searchEnabled` | boolean | `true`  | Shows/hides the tab search box    |
+| Key             | Type    | Default | Effect                          | Adjustable in GUI? |
+|-----------------|---------|---------|----------------------------------|---------------------|
+| `sidebarWidth`  | number  | `240`   | Width in pixels of the left tab panel | Yes — drag the thin handle on the sidebar's right edge |
+| `searchEnabled` | boolean | `true`  | Shows/hides the tab search box    | No — hand-edit `config.json` |
+
+Dragging the sidebar handle saves the new width as an override for **that instance only** (via `POST /api/config`), leaving `global` and other instances untouched — the same precedence rule as hand-editing. `searchEnabled` still has no in-app control and must be hand-edited.
 
 Example — every instance gets a 240px sidebar, except `work` which gets 400px with search disabled:
 

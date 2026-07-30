@@ -15,7 +15,7 @@ export default class EventHandler {
         // Add tab button
         const addTabBtn = this.manager.elements.addTabBtn;
         console.log('Setting up add tab button:', addTabBtn);
-        
+
         if (addTabBtn) {
             addTabBtn.addEventListener('click', () => {
                 console.log('Add tab button clicked');
@@ -23,6 +23,14 @@ export default class EventHandler {
             });
         } else {
             console.error('Add tab button not found!');
+        }
+
+        // Settings button
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => {
+                this.manager.modalManager.openSettingsModal();
+            });
         }
     }
 
@@ -74,6 +82,15 @@ export default class EventHandler {
         document.getElementById('bookmarkForm').addEventListener('submit', (e) => {
             this.manager.bookmarkRenderer.handleBookmarkSubmit(e);
         });
+
+        // Settings modal events
+        document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
+            this.manager.modalManager.closeAllModals();
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+            this.manager.settingsManager.handleSubmit(e);
+        });
     }
 
     setupContextMenuEvents() {
@@ -81,7 +98,11 @@ export default class EventHandler {
         document.getElementById('editOption').addEventListener('click', () => {
             this.manager.contextMenu.handleEdit();
         });
-        
+
+        document.getElementById('copyLinkOption').addEventListener('click', () => {
+            this.manager.contextMenu.handleCopyLink();
+        });
+
         document.getElementById('deleteOption').addEventListener('click', () => {
             this.manager.contextMenu.handleDelete();
         });

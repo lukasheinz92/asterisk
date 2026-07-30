@@ -15,12 +15,17 @@ const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
 const RESERVED_NAMES = ['api', 'data', 'app', 'styles', 'images', 'icons', 'global'];
 
 // GUI settings and their built-in fallback values. Effective config for an
-// instance is DEFAULT_GUI_CONFIG <- config.json (all instances) <- config-{instance}.json,
-// each layer only overriding the keys it defines.
+// instance is DEFAULT_GUI_CONFIG <- config.json's "global" section <- its
+// per-instance section, each layer only overriding the keys it defines.
 const DEFAULT_GUI_CONFIG = {
     sidebarWidth: 240,
     searchEnabled: true
 };
+
+// Range enforced server-side for GUI settings written via POST /api/config
+// (matches the client-side drag clamp in SidebarResizer.js as a safety net).
+const SIDEBAR_WIDTH_MIN = 180;
+const SIDEBAR_WIDTH_MAX = 500;
 
 // Loaded instances configuration
 let instances = [];
@@ -363,7 +368,7 @@ async function handleBookmarkAPI(req, res, instanceName) {
 
 async function handleConfigAPI(req, res, instanceName) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -372,20 +377,65 @@ async function handleConfigAPI(req, res, instanceName) {
         return;
     }
 
-    if (req.method !== 'GET') {
-        res.writeHead(405, { 'Content-Type': 'application/json' });
-        res.end('{"error": "Method not allowed"}');
+    if (req.method === 'GET') {
+        try {
+            const config = await loadEffectiveConfig(instanceName);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(config));
+        } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(`{"error": "${error.message}"}`);
+        }
         return;
     }
 
-    try {
-        const config = await loadEffectiveConfig(instanceName);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(config));
-    } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(`{"error": "${error.message}"}`);
+    if (req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const patch = JSON.parse(body);
+
+                // Only accept known keys within sane ranges - never write
+                // arbitrary client-supplied data into config.json.
+                const updates = {};
+                if (
+                    typeof patch.sidebarWidth === 'number' &&
+                    patch.sidebarWidth >= SIDEBAR_WIDTH_MIN &&
+                    patch.sidebarWidth <= SIDEBAR_WIDTH_MAX
+                ) {
+                    updates.sidebarWidth = Math.round(patch.sidebarWidth);
+                }
+                if (typeof patch.searchEnabled === 'boolean') {
+                    updates.searchEnabled = patch.searchEnabled;
+                }
+
+                if (Object.keys(updates).length === 0) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end('{"error": "No valid settings in request"}');
+                    return;
+                }
+
+                // Written to this instance's own section only - other
+                // instances and the "global" defaults are left untouched.
+                const fullConfig = await readJsonSafe(CONFIG_FILE);
+                fullConfig[instanceName] = { ...(fullConfig[instanceName] || {}), ...updates };
+                await ensureDataDirectory();
+                await fs.writeFile(CONFIG_FILE, JSON.stringify(fullConfig, null, 2));
+
+                const effectiveConfig = await loadEffectiveConfig(instanceName);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(effectiveConfig));
+            } catch (error) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(`{"error": "${error.message}"}`);
+            }
+        });
+        return;
     }
+
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end('{"error": "Method not allowed"}');
 }
 
 // Resolves `segments` under `baseDir` and rejects anything that escapes it

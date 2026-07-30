@@ -3,6 +3,7 @@ import EventHandler from './EventHandler.js';
 import ModalManager from '../ui/ModalManager.js';
 import ContextMenu from '../ui/ContextMenu.js';
 import IconManager from '../ui/IconManager.js';
+import SettingsManager from '../ui/SettingsManager.js';
 import BookmarkRenderer from '../bookmarks/BookmarkRenderer.js';
 import TabManager from '../bookmarks/TabManager.js';
 import GroupManager from '../bookmarks/GroupManager.js';
@@ -54,7 +55,10 @@ export default class BookmarkManager {
             
             console.log('Creating IconManager...');
             this.iconManager = new IconManager(this);
-            
+
+            console.log('Creating SettingsManager...');
+            this.settingsManager = new SettingsManager(this);
+
             console.log('Creating BookmarkRenderer...');
             this.bookmarkRenderer = new BookmarkRenderer(this);
             
