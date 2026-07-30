@@ -3,25 +3,23 @@ console.log('App.js script starting...');
 
 // Import BookmarkManager
 import BookmarkManager from './app/core/BookmarkManager.js';
+import { GuiConfigManager } from './app/utils/GuiConfigManager.js';
 
 console.log('Imports successful');
 
 // Default empty config - will be overridden by file data
 const defaultConfig = {
-    tabSortOrder: {
-        "Home": -4,
-        "Work": -3,
-        "Tools": -2,
-        "Personal": -1,
-        "Archive": 999
-    },
+    tabSortOrder: {},
     tabs: []
 };
 
 console.log('Default config:', defaultConfig);
 
 // Function to initialize the app
-function initializeApp() {
+async function initializeApp() {
+    console.log('Loading GUI config...');
+    await GuiConfigManager.loadAndApply();
+
     console.log('Initializing BookmarkManager...');
     try {
         console.log('About to create BookmarkManager...');

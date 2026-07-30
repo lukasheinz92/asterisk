@@ -290,7 +290,7 @@ export default class BookmarkRenderer {
         e.preventDefault();
         const name = document.getElementById('bookmarkName').value.trim();
         const url = document.getElementById('bookmarkUrl').value.trim();
-        let icon = document.getElementById('bookmarkIcon').value.trim() || 'data/icons/default.png';
+        let icon = document.getElementById('bookmarkIcon').value.trim() || 'data/icons/_BOOKMARK_.png';
 
         // Strip base path from icon for storage (makes data portable)
         const basePath = BookmarkRenderer.getBasePath();
@@ -306,7 +306,7 @@ export default class BookmarkRenderer {
             const bookmark = {
                 name: name,
                 url: url,
-                icon: icon || 'data/icons/default.png',
+                icon: icon || 'data/icons/_BOOKMARK_.png',
                 isImg: true
             };
             

@@ -35,7 +35,14 @@ export default class EventHandler {
         // Close modals when clicking outside
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
-                this.manager.modalManager.closeAllModals();
+                this.manager.modalManager.requestClose();
+            }
+        });
+
+        // Close the open modal on Escape, confirming if there are unsaved changes
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.manager.modalManager.requestClose();
             }
         });
     }

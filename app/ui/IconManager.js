@@ -3,6 +3,16 @@ export default class IconManager {
     constructor(manager) {
         this.manager = manager;
         this.availableIcons = [];
+
+        // Attached once here rather than in populateIconDropdown(), which runs
+        // every time the bookmark modal opens and would otherwise stack a new
+        // listener on the same persistent <select> element each time.
+        const iconSelect = document.getElementById('bookmarkIcon');
+        if (iconSelect) {
+            iconSelect.addEventListener('change', (e) => {
+                this.updateIconPreview(e.target.value);
+            });
+        }
     }
 
     // Get base path for API calls
@@ -62,11 +72,6 @@ export default class IconManager {
             option.value = `${basePath}/data/icons/${filename}`;
             option.textContent = displayName;
             iconSelect.appendChild(option);
-        });
-
-        // Add change listener for icon preview
-        iconSelect.addEventListener('change', (e) => {
-            this.updateIconPreview(e.target.value);
         });
     }
 

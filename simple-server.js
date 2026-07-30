@@ -8,9 +8,19 @@ const PORT = 8666;
 const DATA_DIR = path.join(__dirname, 'data');
 const INSTANCES_FILE = path.join(DATA_DIR, 'instances.json');
 const OLD_DATA_FILE = path.join(DATA_DIR, 'bookmarks-data.json');
+const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
 
 // Reserved instance names that cannot be used
-const RESERVED_NAMES = ['api', 'data', 'app', 'styles', 'images', 'icons'];
+// ('global' is reserved because config.json uses it as the all-instances section key)
+const RESERVED_NAMES = ['api', 'data', 'app', 'styles', 'images', 'icons', 'global'];
+
+// GUI settings and their built-in fallback values. Effective config for an
+// instance is DEFAULT_GUI_CONFIG <- config.json (all instances) <- config-{instance}.json,
+// each layer only overriding the keys it defines.
+const DEFAULT_GUI_CONFIG = {
+    sidebarWidth: 240,
+    searchEnabled: true
+};
 
 // Loaded instances configuration
 let instances = [];
@@ -70,6 +80,33 @@ async function ensureDataDirectory() {
         // Create default bookmark icon
         await createDefaultIcon(iconsDir);
     }
+
+    // Seed the GUI config file so there's something to hand-edit
+    try {
+        await fs.access(CONFIG_FILE);
+    } catch {
+        await fs.writeFile(CONFIG_FILE, JSON.stringify({ global: DEFAULT_GUI_CONFIG }, null, 2));
+        console.log('Created default config.json:', CONFIG_FILE);
+    }
+}
+
+async function readJsonSafe(filePath) {
+    try {
+        const raw = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(raw);
+    } catch {
+        return {};
+    }
+}
+
+// config.json holds a "global" section applied to all instances, plus one
+// optional section per instance name - keys there override the same key
+// under "global" for that instance only.
+async function loadEffectiveConfig(instanceName) {
+    const fullConfig = await readJsonSafe(CONFIG_FILE);
+    const globalConfig = fullConfig.global || {};
+    const instanceConfig = fullConfig[instanceName] || {};
+    return { ...DEFAULT_GUI_CONFIG, ...globalConfig, ...instanceConfig };
 }
 
 // Migrate old data file if it exists
@@ -276,13 +313,7 @@ async function handleBookmarkAPI(req, res, instanceName) {
                 if (error.code === 'ENOENT') {
                     // File doesn't exist, return default empty config
                     const defaultConfig = {
-                        tabSortOrder: {
-                            "Home": -4,
-                            "Work": -3,
-                            "Tools": -2,
-                            "Personal": -1,
-                            "Archive": 999
-                        },
+                        tabSortOrder: {},
                         tabs: []
                     };
                     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -328,6 +359,48 @@ async function handleBookmarkAPI(req, res, instanceName) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(`{"error": "${error.message}"}`);
     }
+}
+
+async function handleConfigAPI(req, res, instanceName) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    if (req.method !== 'GET') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end('{"error": "Method not allowed"}');
+        return;
+    }
+
+    try {
+        const config = await loadEffectiveConfig(instanceName);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(config));
+    } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(`{"error": "${error.message}"}`);
+    }
+}
+
+// Resolves `segments` under `baseDir` and rejects anything that escapes it
+// via ".." (URL path segments are attacker-controlled and are not stripped
+// of ".." upstream, so this containment check is required before any fs read).
+// Uses path.join (not path.resolve) to combine segments: path.resolve treats a
+// segment starting with "/" as an absolute-path override (resetting to the
+// drive root on Windows), which would make every request resolve outside baseDir.
+function resolveSafePath(baseDir, ...segments) {
+    const resolvedBase = path.resolve(baseDir);
+    const resolvedPath = path.resolve(path.join(baseDir, ...segments));
+    if (resolvedPath !== resolvedBase && !resolvedPath.startsWith(resolvedBase + path.sep)) {
+        return null;
+    }
+    return resolvedPath;
 }
 
 async function serveFile(req, res, filePath) {
@@ -423,6 +496,11 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        if (remainingPath.startsWith('/api/config')) {
+            await handleConfigAPI(req, res, instanceName);
+            return;
+        }
+
         // Handle data/icons directory listing
         if (remainingPath === '/data/icons/' || remainingPath === '/data/icons') {
             const iconsDir = path.join(DATA_DIR, 'icons');
@@ -452,12 +530,23 @@ const server = http.createServer(async (req, res) => {
         // Serve icon files from shared data/icons
         if (remainingPath.startsWith('/data/icons/')) {
             const iconFile = remainingPath.replace('/data/icons/', '');
-            await serveFile(req, res, path.join(DATA_DIR, 'icons', iconFile));
+            const iconFilePath = resolveSafePath(path.join(DATA_DIR, 'icons'), iconFile);
+            if (!iconFilePath) {
+                res.writeHead(403, { 'Content-Type': 'text/plain' });
+                res.end('Forbidden');
+                return;
+            }
+            await serveFile(req, res, iconFilePath);
             return;
         }
 
         // Serve static files (map instance path to root files)
-        const staticFilePath = path.join(__dirname, remainingPath);
+        const staticFilePath = resolveSafePath(__dirname, remainingPath);
+        if (!staticFilePath) {
+            res.writeHead(403, { 'Content-Type': 'text/plain' });
+            res.end('Forbidden');
+            return;
+        }
         await serveFile(req, res, staticFilePath);
         return;
     }

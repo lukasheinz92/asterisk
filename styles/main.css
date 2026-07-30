@@ -1,4 +1,5 @@
 :root {
+    --sidebar-width: 240px;
     --bg-color: #121212;
     --sidebar-bg: #1e1e1e;
     --text-color: #e0e0e0;
@@ -26,7 +27,7 @@ body {
 }
 
 #sidebar {
-    width: 240px;
+    width: var(--sidebar-width);
     background-color: var(--sidebar-bg);
     overflow-y: auto;
     border-right: 1px solid #333;
@@ -114,64 +115,11 @@ input[type="text"]:focus, input[type="url"]:focus, select:focus {
     font-weight: bold;
 }
 
-.tab.dragging {
-    opacity: 0.5;
-    background-color: #444;
-}
-
-.drop-indicator {
-    height: 2px;
-    background-color: var(--accent-color);
-    margin: 2px 0;
-    border-radius: 1px;
-    opacity: 0.8;
-}
-
-/* Tab Group Styling */
-.tab-group-header {
-    padding: 8px 20px 4px;
-    margin: 8px 0 4px;
-    border-bottom: 1px solid #444;
-    background-color: rgba(33, 150, 243, 0.05);
-    transition: all 0.2s ease;
-    display: block; /* Always visible now */
-}
-
-.tab-group-header.drag-active {
-    display: block; /* Show during drag */
-}
-
-.tab-group-header.drop-zone-active {
-    background-color: rgba(33, 150, 243, 0.15);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
-}
-
-.group-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent-color);
-    margin-bottom: 2px;
-}
-
-.group-description {
-    font-size: 10px;
-    color: #888;
-    font-style: italic;
-}
-
 .tab-group-container {
     transition: all 0.2s ease;
     border-radius: 4px;
     margin: 0 0 8px;
     /* No visual styling by default - looks like normal tab list */
-}
-
-.tab-group-container.drop-zone-active {
-    background-color: rgba(33, 150, 243, 0.08);
-    border: 1px dashed var(--accent-color);
-    padding: 4px;
-    margin: 0 4px 8px;
 }
 
 /* Tab Group Separator */
@@ -201,85 +149,6 @@ input[type="text"]:focus, input[type="url"]:focus, select:focus {
 .dynamic-drop-zone-bottom {
     border-color: #9c27b0;
     background-color: rgba(156, 39, 176, 0.05);
-}
-
-/* Different group styling */
-.tab-group-top .group-title {
-    color: #ff9800;
-}
-
-.tab-group-top.drop-zone-active {
-    background-color: rgba(255, 152, 0, 0.15);
-    border-color: #ff9800;
-    box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
-}
-
-.tab-group-bottom .group-title {
-    color: #9c27b0;
-}
-
-.tab-group-bottom.drop-zone-active {
-    background-color: rgba(156, 39, 176, 0.15);
-    border-color: #9c27b0;
-    box-shadow: 0 0 8px rgba(156, 39, 176, 0.3);
-}
-
-/* Empty Drop Zones */
-.empty-drop-zone {
-    margin: 8px 16px;
-    padding: 16px;
-    border: 2px dashed #666;
-    border-radius: 8px;
-    background-color: rgba(33, 150, 243, 0.05);
-    transition: all 0.3s ease;
-    text-align: center;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.empty-drop-zone:hover {
-    border-color: var(--accent-color);
-    background-color: rgba(33, 150, 243, 0.1);
-}
-
-.empty-drop-zone-top {
-    border-color: #ff9800;
-    background-color: rgba(255, 152, 0, 0.05);
-}
-
-.empty-drop-zone-top:hover {
-    border-color: #ff9800;
-    background-color: rgba(255, 152, 0, 0.1);
-}
-
-.empty-drop-zone-bottom {
-    border-color: #9c27b0;
-    background-color: rgba(156, 39, 176, 0.05);
-}
-
-.empty-drop-zone-bottom:hover {
-    border-color: #9c27b0;
-    background-color: rgba(156, 39, 176, 0.1);
-}
-
-.empty-zone-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.empty-zone-icon {
-    font-size: 20px;
-    opacity: 0.7;
-}
-
-.empty-zone-text {
-    font-size: 12px;
-    color: #999;
-    font-weight: 500;
 }
 
 .add-tab-btn {
@@ -333,12 +202,6 @@ input[type="text"]:focus, input[type="url"]:focus, select:focus {
 .bookmark:hover {
     transform: translateY(-5px);
     background-color: #3d3d3d;
-}
-
-.bookmark.dragging {
-    opacity: 0.5;
-    transform: rotate(5deg) scale(0.9);
-    z-index: 1000;
 }
 
 .bookmark-icon {
@@ -404,25 +267,6 @@ input[type="text"]:focus, input[type="url"]:focus, select:focus {
 .project-section {
     margin-bottom: 30px;
     position: relative;
-}
-
-.drop-placeholder {
-    width: 180px;
-    height: 120px;
-    border: 2px dashed var(--accent-color);
-    border-radius: 8px;
-    background-color: rgba(33, 150, 243, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent-color);
-    font-size: 14px;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.drop-placeholder.visible {
-    opacity: 1;
 }
 
 /* Modal Styles */

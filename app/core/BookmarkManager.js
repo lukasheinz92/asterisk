@@ -3,11 +3,9 @@ import EventHandler from './EventHandler.js';
 import ModalManager from '../ui/ModalManager.js';
 import ContextMenu from '../ui/ContextMenu.js';
 import IconManager from '../ui/IconManager.js';
-import TabSortManager from '../ui/TabSortManager.js';
 import BookmarkRenderer from '../bookmarks/BookmarkRenderer.js';
 import TabManager from '../bookmarks/TabManager.js';
 import GroupManager from '../bookmarks/GroupManager.js';
-import DragDropHandler from '../dragdrop/DragDropHandler.js';
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { DataUtils } from '../utils/DataUtils.js';
 import { FileStorageManager } from '../utils/FileStorageManager.js';
@@ -65,10 +63,7 @@ export default class BookmarkManager {
             
             console.log('Creating GroupManager...');
             this.groupManager = new GroupManager(this);
-            
-            console.log('Creating DragDropHandler...');
-            this.dragDropHandler = new DragDropHandler(this);
-            
+
             console.log('All modules initialized successfully');
         } catch (error) {
             console.error('Error in initializeModules:', error);

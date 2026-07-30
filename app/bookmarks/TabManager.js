@@ -40,9 +40,9 @@ export default class TabManager {
         
         sortedTabs.forEach(tab => {
             const sortOrder = this.manager.getTabSortOrder(tab.name);
-            if (sortOrder && sortOrder.startsWith('top-')) {
+            if (typeof sortOrder === 'string' && sortOrder.startsWith('top-')) {
                 topTabs.push(tab);
-            } else if (sortOrder && sortOrder.startsWith('bottom-')) {
+            } else if (typeof sortOrder === 'string' && sortOrder.startsWith('bottom-')) {
                 bottomTabs.push(tab);
             } else {
                 alphabeticalTabs.push(tab);
@@ -100,32 +100,6 @@ export default class TabManager {
             className: 'tab-group-separator'
         });
         this.manager.elements.tabList.appendChild(separator);
-    }
-
-    getGroupTitle(groupType, tabCount) {
-        switch (groupType) {
-            case 'top':
-                return `Top (${tabCount})`;
-            case 'alphabetical':
-                return `Alphabetical (${tabCount})`;
-            case 'bottom':
-                return `Bottom (${tabCount})`;
-            default:
-                return '';
-        }
-    }
-
-    getGroupDescription(groupType, tabCount) {
-        switch (groupType) {
-            case 'top':
-                return tabCount > 0 ? 'Fixed at top position' : 'Drag here for top position';
-            case 'alphabetical':
-                return 'Sorted alphabetically by name';
-            case 'bottom':
-                return tabCount > 0 ? 'Fixed at bottom position' : 'Drag here for bottom position';
-            default:
-                return '';
-        }
     }
 
     setupSortable() {
@@ -298,20 +272,6 @@ export default class TabManager {
         // Refresh the display to show the changes
         console.log('Refreshing tab list after move');
         this.manager.refreshTabList();
-    }
-    
-    getTabsInGroup(groupType) {
-        const tabs = this.manager.getTabData();
-        return tabs.filter(tab => {
-            const sortOrder = this.manager.config.tabSortOrder?.[tab.name];
-            if (groupType === 'top') {
-                return sortOrder && sortOrder.startsWith('top-');
-            } else if (groupType === 'bottom') {
-                return sortOrder && sortOrder.startsWith('bottom-');
-            } else {
-                return !sortOrder || (!sortOrder.startsWith('top-') && !sortOrder.startsWith('bottom-'));
-            }
-        });
     }
     
     normalizeTabPositions() {
