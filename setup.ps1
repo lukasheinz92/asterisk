@@ -118,7 +118,16 @@ function Remove-Instance {
 }
 
 function Get-AutostartTask {
-    return Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($task) { return $task }
+    # The ScheduledTasks cmdlets enumerate tasks via CIM, and a single task
+    # with malformed XML anywhere on the machine (often third-party) makes
+    # them fail for every task - Get-ScheduledTask then silently returns
+    # $null even though ours exists. schtasks.exe looks the task up directly,
+    # so fall back to it for the existence check.
+    schtasks.exe /query /tn $TaskName *> $null
+    if ($LASTEXITCODE -eq 0) { return [pscustomobject]@{ TaskName = $TaskName } }
+    return $null
 }
 
 function Test-IsAdmin {
@@ -137,8 +146,23 @@ function Request-ElevatedRelaunch {
 }
 
 function Register-Autostart {
+    # Launch node with CreateNoWindow so no console is ever allocated for it.
+    # (Running it inline under "powershell -WindowStyle Hidden" isn't enough:
+    # when Windows Terminal is the default terminal app, its console
+    # delegation doesn't honor the hidden window request, so a visible
+    # terminal window sticks around for the server's whole lifetime.)
+    $innerScript = @"
+`$psi = [System.Diagnostics.ProcessStartInfo]::new()
+`$psi.FileName = 'node.exe'
+`$psi.Arguments = 'simple-server.js'
+`$psi.WorkingDirectory = '$ScriptDir'
+`$psi.UseShellExecute = `$false
+`$psi.CreateNoWindow = `$true
+[System.Diagnostics.Process]::Start(`$psi) | Out-Null
+"@
+    $encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($innerScript))
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-        -Argument "-NoLogo -NonInteractive -WindowStyle Hidden -Command `"Set-Location -LiteralPath '$ScriptDir'; node simple-server.js`""
+        -Argument "-NoLogo -NonInteractive -WindowStyle Hidden -EncodedCommand $encodedCommand"
     $trigger = New-ScheduledTaskTrigger -AtLogOn
     $settings = New-ScheduledTaskSettingsSet -Hidden -ExecutionTimeLimit ([TimeSpan]::Zero) `
         -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
@@ -159,7 +183,15 @@ function Unregister-Autostart {
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction Stop
         Write-Host "Autostart disabled." -ForegroundColor Green
     } catch {
-        Write-Host "Failed to remove scheduled task: $($_.Exception.Message)" -ForegroundColor Red
+        # Same CIM issue as in Get-AutostartTask: fall back to schtasks.exe.
+        $cimError = $_.Exception.Message
+        $schtasksOutput = schtasks.exe /delete /tn $TaskName /f 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Autostart disabled." -ForegroundColor Green
+            return
+        }
+        Write-Host "Failed to remove scheduled task: $cimError" -ForegroundColor Red
+        Write-Host "schtasks.exe: $($schtasksOutput -join ' ')" -ForegroundColor Red
         Request-ElevatedRelaunch
     }
 }
@@ -175,7 +207,13 @@ function Start-Server {
         Write-Host "Server already running on port $Port." -ForegroundColor Yellow
         return
     }
-    Start-Process -FilePath 'node' -ArgumentList 'simple-server.js' -WorkingDirectory $ScriptDir -WindowStyle Hidden
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = 'node.exe'
+    $psi.Arguments = 'simple-server.js'
+    $psi.WorkingDirectory = $ScriptDir
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    [System.Diagnostics.Process]::Start($psi) | Out-Null
     Start-Sleep -Milliseconds 800
     if (Get-ServerProcessId) {
         Write-Host "Server started: http://localhost:$Port/" -ForegroundColor Green
