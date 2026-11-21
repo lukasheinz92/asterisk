@@ -125,6 +125,10 @@ function Get-AutostartTask {
     # them fail for every task - Get-ScheduledTask then silently returns
     # $null even though ours exists. schtasks.exe looks the task up directly,
     # so fall back to it for the existence check.
+    # Under Windows PowerShell 5.1, redirected native stderr becomes an error
+    # record, which $ErrorActionPreference = 'Stop' turns into a terminating
+    # error ("task not found" is normal here), so relax it for this call.
+    $ErrorActionPreference = 'Continue'
     schtasks.exe /query /tn $TaskName *> $null
     if ($LASTEXITCODE -eq 0) { return [pscustomobject]@{ TaskName = $TaskName } }
     return $null
@@ -185,6 +189,7 @@ function Unregister-Autostart {
     } catch {
         # Same CIM issue as in Get-AutostartTask: fall back to schtasks.exe.
         $cimError = $_.Exception.Message
+        $ErrorActionPreference = 'Continue'  # see Get-AutostartTask
         $schtasksOutput = schtasks.exe /delete /tn $TaskName /f 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Autostart disabled." -ForegroundColor Green
